@@ -8,7 +8,7 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-from exceptions import BadResponseStatus, TokensError
+from exceptions import BadResponseStatus, EmptyElementError, TokensError
 
 load_dotenv()
 
@@ -42,8 +42,8 @@ logger.addHandler(consoleHandler)
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-    print(TELEGRAM_TOKEN)
-    return TELEGRAM_TOKEN and PRACTICUM_TOKEN and TELEGRAM_CHAT_ID
+    tokens = all([TELEGRAM_TOKEN, PRACTICUM_TOKEN, TELEGRAM_CHAT_ID])
+    return tokens
 
 
 def send_message(bot, message):
@@ -87,17 +87,36 @@ def check_response(response):
     """
     if not isinstance(response, dict):
         raise TypeError(
-            f'API передал не словарь. Переданный тип данных {type(response)}')
+            f'API передал не словарь. Переданный тип данных {type(response)}'
+        )
 
     if 'homeworks' not in response:
-        raise KeyError('В API отсутствует клчючь "homeworks".')
+        raise KeyError('В API отсутствует ключ "homeworks".')
 
     homeworks = response.get('homeworks')
 
     if not isinstance(homeworks, list):
-        raise TypeError('Не передается список из работ')
+        raise TypeError(
+            'API не передает список по ключу "homeworks". '
+            f'Переданный тип данных {type(homeworks)}'
+        )
 
-    return homeworks
+    if not homeworks:
+        raise EmptyElementError('Cписок получаемы по ключу "homeworks" пуст')
+
+    homework = homeworks[0]
+    if not isinstance(homework, dict):
+        raise TypeError(
+            'Cписок полученный по ключу "homeworks", первым элементом '
+            f'не передает словарь. Переданный тип данных {type(homework)}'
+        )
+
+    if not homework:
+        raise EmptyElementError(
+            'В полученном словаре отсутсвуют данные'
+        )
+
+    return homework
 
 
 def parse_status(homework):
@@ -142,12 +161,10 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            homeworks = check_response(response)
+            homework = check_response(response)
 
-            last_homeworks = homeworks[0]
-
-            if last_homeworks:
-                message = parse_status(last_homeworks)
+            if homework:
+                message = parse_status(homework)
                 if last_response_message != message:
                     last_response_message = message
                     send_message(bot, message)
