@@ -18,7 +18,7 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 RETRY_PERIOD = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/123'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 PERIOD_30_DAYS = 2592000
@@ -174,7 +174,7 @@ def main():
 
             logger.debug('Отсутсвие в ответе новых статусов')
 
-        time.sleep(RETRY_PERIOD)
+        time.sleep(3)
 
 
 if __name__ == '__main__':
