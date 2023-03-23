@@ -156,27 +156,23 @@ def main():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time()) - PERIOD_30_DAYS
     last_response_message = ''
-    message_error = ''
 
     while True:
         try:
             response = get_api_answer(timestamp)
             homework = check_response(response)
-
-            if homework:
-                message = parse_status(homework)
-                if last_response_message != message:
-                    last_response_message = message
-                    send_message(bot, message)
-
-                logger.debug('Отсутсвие в ответе новых статусов')
+            message = parse_status(homework)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.error(message)
-            if message_error != message:
+
+        finally:
+            if last_response_message != message:
                 send_message(bot, message)
-                message_error = message
+                last_response_message = message
+
+            logger.debug('Отсутсвие в ответе новых статусов')
 
         time.sleep(RETRY_PERIOD)
 
