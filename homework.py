@@ -174,7 +174,7 @@ def main():
 
             logger.debug('Отсутсвие в ответе новых статусов')
 
-        time.sleep(3)
+        time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
